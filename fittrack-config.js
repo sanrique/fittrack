@@ -1,18 +1,8 @@
-// ══════════════════════════════════════════════════════════
-// FITTRACK — Configuração Firebase
-// Edite SOMENTE este arquivo. Não toque em trainer.html
-// nem aluno.html para configurar o Firebase.
-//
-// Como preencher:
-//  1. console.firebase.google.com
-//  2. Seu projeto → Project settings → Your apps → Web app
-//  3. Copie o firebaseConfig e cole os valores abaixo
-// ══════════════════════════════════════════════════════════
 window.FITTRACK_FIREBASE_CONFIG = {
-  apiKey:            "COLE_AQUI",
-  authDomain:        "COLE_AQUI",
-  projectId:         "COLE_AQUI",
-  storageBucket:     "COLE_AQUI",
-  messagingSenderId: "COLE_AQUI",
-  appId:             "COLE_AQUI",
+  apiKey:            "AIzaSyA0hYRBZB7a6fYVV2_TXlkLxPbgkWNZUhI",
+  authDomain:        "fittrack-33b53.firebaseapp.com",
+  projectId:         "fittrack-33b53",
+  storageBucket:     "fittrack-33b53.firebasestorage.app",
+  messagingSenderId: "202823507242",
+  appId:             "1:202823507242:web:60fa1748d62114f2c7d253",
 };
