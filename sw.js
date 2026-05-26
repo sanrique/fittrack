@@ -1,4 +1,4 @@
-const CACHE = 'fittrack-v1';
+const CACHE = 'fittrack-v2';
 const LOCAL_FILES = [
   './trainer.html',
   './aluno.html',
