@@ -270,6 +270,8 @@
     .etab.on{color:var(--accent);border-bottom-color:var(--accent);}
 
     @media(min-width:440px){.fab-wrap{width:398px;}.modal-ov{align-items:center;}.modal{border-radius:20px;max-height:80vh;}.detail-panel{border-radius:20px 0 0 20px;}}
+    .save-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(15,15,32,.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,122,0,.3);border-radius:8px;padding:9px 16px;font-family:var(--ff-m);font-size:10px;color:var(--accent);letter-spacing:1px;z-index:50;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+    .save-toast.show{opacity:1;}
   </style>
 </head>
 <body>
@@ -312,6 +314,8 @@
   <div style="height:90px"></div>
   <div class="fab-wrap"><button class="fab" onclick="openAddStudent()">+ Novo Aluno</button></div>
 </div>
+
+<div class="save-toast" id="saveToast"></div>
 
 <!-- OVERLAY -->
 <div class="overlay" id="overlay" onclick="closeDetailIfOverlay(event)"></div>
@@ -533,7 +537,15 @@
         <div style="font-size:11px;color:var(--sub);margin-bottom:10px;">Remova os alunos demo e comece com uma conta limpa.</div>
         <button type="button" onclick="clearDemoStudents()" style="width:100%;padding:8px;background:rgba(255,204,0,.1);border:1px solid rgba(255,204,0,.3);border-radius:var(--r-sm);color:var(--warn);font-family:var(--ff-m);font-size:10px;letter-spacing:1px;cursor:pointer;">Remover alunos demo</button>
       </div>
-      <button type="submit" class="fab" style="width:100%;border-radius:var(--r-sm);font-size:14px;">Salvar</button>
+      <div style="border-top:1px solid var(--border);padding-top:16px;margin-top:4px;">
+        <div style="font-family:var(--ff-m);font-size:9px;letter-spacing:1.5px;color:var(--sub);text-transform:uppercase;margin-bottom:10px;">Dados</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button type="button" onclick="exportDB()" style="padding:9px;background:var(--acc-dim);border:1px solid var(--acc-glow);border-radius:var(--r-sm);color:var(--accent);font-family:var(--ff-m);font-size:10px;letter-spacing:1px;cursor:pointer;">↓ Exportar</button>
+          <button type="button" onclick="document.getElementById('importInput').click()" style="padding:9px;background:var(--surface);border:1px solid var(--border-m);border-radius:var(--r-sm);color:var(--text);font-family:var(--ff-m);font-size:10px;letter-spacing:1px;cursor:pointer;">↑ Importar</button>
+        </div>
+        <input type="file" id="importInput" accept=".json" style="display:none" onchange="importDB(event)">
+      </div>
+      <button type="submit" class="fab" style="width:100%;border-radius:var(--r-sm);font-size:14px;margin-top:16px;">Salvar</button>
     </form>
   </div>
 </div>
@@ -1109,6 +1121,15 @@ function addCustomEx(e) {
   saveDB(); closeModal('exOv'); renderExList(); e.target.reset();
 }
 
+// ── TOAST ──────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('saveToast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
 // ── MODAL HELPERS ─────────────────────────────────────────
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -1139,6 +1160,35 @@ function saveSettings(e) {
 function clearDemoStudents() {
   DB.students = DB.students.filter(s => !['aluno_001','aluno_002','aluno_003'].includes(s.id));
   saveDB(); renderMain(); closeModal('settingsOv');
+}
+function exportDB() {
+  const blob = new Blob([JSON.stringify(DB, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'fittrack-backup.json';
+  a.click();
+}
+function importDB(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (!imported.students) throw new Error('Arquivo inválido');
+      // Merge students: add only those whose IDs don't already exist
+      let added = 0;
+      imported.students.forEach(s => {
+        if (!DB.students.find(x => x.id === s.id)) {
+          DB.students.push(s); added++;
+        }
+      });
+      saveDB(); renderMain(); closeModal('settingsOv');
+      showToast(added ? `${added} aluno(s) importado(s)` : 'Nenhum aluno novo encontrado');
+    } catch(err) { showToast('Erro ao importar: arquivo inválido'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
 }
 
 // ── INIT ──────────────────────────────────────────────────
